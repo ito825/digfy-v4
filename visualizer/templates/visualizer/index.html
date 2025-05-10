@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <title>関連アーティスト可視化</title>
+  </head>
+  <body>
+    <h1>関連アーティスト可視化</h1>
+
+    {% if user.is_authenticated %}
+    <p>
+      こんにちは、{{ user.username }}さん！
+      <a href="{% url 'logout' %}">ログアウト</a>
+    </p>
+    {% else %}
+    <p>
+      <a href="{% url 'login' %}">ログイン</a> または
+      <a href="{% url 'signup' %}">サインアップ</a>
+    </p>
+    {% endif %}
+
+    <form method="post">
+      {% csrf_token %}
+      <input
+        type="text"
+        name="artist"
+        placeholder="アーティスト名を入力"
+        value="{{ current_artist }}"
+      />
+      <button type="submit" name="action" value="search">検索</button>
+    </form>
+
+    {% if plot %}
+    <div>
+      {{ plot|safe }}
+      <p>
+        <a id="download-link" download="network.png" href="">
+          📷 この画像をダウンロード
+        </a>
+      </p>
+    </div>
+
+    <p>
+      📷 グラフ右上の <strong>カメラアイコン</strong> をクリックすると、<br />
+      <strong>PNG画像としてダウンロード</strong>できます（ログイン不要）
+    </p>
+
+    {% if user.is_authenticated %}
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="artist" value="{{ current_artist }}" />
+      <input type="hidden" name="html_content" value="{{ plot|escape }}" />
+      <button type="submit" name="action" value="save">保存する</button>
+    </form>
+    {% else %}
+    <p>
+      保存には
+      <a href="{% url 'login' %}?next={{ request.path }}">ログイン</a>
+      が必要です
+    </p>
+    {% endif %} {% endif %} {% if message %}
+    <p style="color: green">{{ message }}</p>
+    {% endif %} {% if error %}
+    <p style="color: red">{{ error }}</p>
+    {% endif %}
+
+    <hr />
+    <p><a href="{% url 'my_networks' %}">保存したネットワークを見る</a></p>
+  </body>
+</html>

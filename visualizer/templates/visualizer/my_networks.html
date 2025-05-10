@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  </head>
+  <body>
+    <h2>保存されたネットワーク</h2>
+
+    {% for item in networks %}
+    <div>
+      <h3>{{ item.artist_name }}</h3>
+      {{ item.html_content|safe }}
+    </div>
+    {% endfor %}
+  </body>
+</html>
