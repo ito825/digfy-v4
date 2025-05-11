@@ -9,7 +9,7 @@ from io import BytesIO
 import base64
 import requests
 import pandas as pd
-
+from django.utils.safestring import mark_safe
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
@@ -99,7 +99,6 @@ class DeezerInfo:
         nx.draw_networkx_edges(self.G, pos, alpha=0.3)
         nx.draw_networkx_labels(self.G, pos, font_size=10)
 
-        # --- PNG保存 → base64エンコード ---
         buffer = BytesIO()
         plt.savefig(buffer, format='png')
         buffer.seek(0)
@@ -107,9 +106,13 @@ class DeezerInfo:
         buffer.close()
         plt.close()
 
-        # --- HTMLに埋め込み可能なタグ形式で返す ---
-        encoded = base64.b64encode(image_png).decode('utf-8')
-        return f'<img src="data:image/png;base64,{encoded}" alt="Artist Network">'
+        base64_image = base64.b64encode(image_png).decode('utf-8')
+        
+        # 表示用（<img>埋め込み）
+        html_display = f'<img src="data:image/png;base64,{base64_image}" alt="Artist Network">'
+        
+        # ダウンロード用（Base64のみ）
+        return html_display, base64_image
 
 
 
@@ -123,14 +126,17 @@ def index(request):
 
         if action == "search":
             deezer = DeezerInfo()
-            graph = deezer.draw_related_map(artist_name)
-            if graph:
-                context['plot'] = graph
+            html, base64_img = deezer.draw_related_map(artist_name)
+            if html:
+                context['plot'] = mark_safe(html)         # ←ここで安全に明示
+                context['download_img'] = base64_img
             else:
                 context['error'] = "アーティストが見つかりませんでした。"
 
+    # 保存時
         elif action == "save" and request.user.is_authenticated:
-            html = request.POST.get("html_content")
+            base64_img = request.POST.get("base64_img")
+            html = f'<img src="data:image/png;base64,{base64_img}" alt="Artist Network">'
             ArtistNetwork.objects.create(user=request.user, artist_name=artist_name, html_content=html)
             context['message'] = "保存しました。"
 
