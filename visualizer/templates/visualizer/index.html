@@ -10,7 +10,11 @@
     {% if user.is_authenticated %}
     <p>
       こんにちは、{{ user.username }}さん！
-      <a href="{% url 'logout' %}">ログアウト</a>
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">ログアウト</button>
+      </form>
+      
     </p>
     {% else %}
     <p>
@@ -31,14 +35,16 @@
     </form>
 
     {% if plot %}
-    <div>
-      {{ plot|safe }}
-      <p>
-        <a id="download-link" download="network.png" href="">
-          📷 この画像をダウンロード
-        </a>
-      </p>
-    </div>
+    <div>{{ plot }}</div>
+    <p>
+      <a
+        id="download-link"
+        download="network.png"
+        href="data:image/png;base64,{{ download_img }}"
+      >
+        📷 この画像をダウンロード
+      </a>
+    </p>
 
     <p>
       📷 グラフ右上の <strong>カメラアイコン</strong> をクリックすると、<br />
@@ -49,7 +55,7 @@
     <form method="post">
       {% csrf_token %}
       <input type="hidden" name="artist" value="{{ current_artist }}" />
-      <input type="hidden" name="html_content" value="{{ plot|escape }}" />
+      <input type="hidden" name="base64_img" value="{{ download_img }}" />
       <button type="submit" name="action" value="save">保存する</button>
     </form>
     {% else %}
