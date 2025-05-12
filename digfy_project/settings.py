@@ -25,16 +25,19 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'visualizer', 
+   'django.contrib.admin',              # 管理画面（/admin）を提供するアプリ
+    'django.contrib.auth',              # ユーザー認証（ログイン/ログアウトなど）機能
+    'django.contrib.contenttypes',      # モデルのコンテンツタイプを扱う仕組み
+    'django.contrib.sessions',          # セッション管理（ログイン状態の保持など）
+    'django.contrib.messages',          # 一時メッセージの仕組み
+    'django.contrib.staticfiles',       # CSS・JSなど静的ファイルの取り扱い
+    'visualizer',                       # アプリ（アーティスト可視化）
+    'corsheaders',                      # CORS（他ドメインからのアクセス許可）設定用
+    'rest_framework',                   # Django REST Framework（API構築用）
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -43,6 +46,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'digfy_project.urls'
 
@@ -121,3 +126,7 @@ LOGIN_REDIRECT_URL = '/'
 
 # ログアウト後にリダイレクトされるURL
 LOGOUT_REDIRECT_URL = '/'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React dev server
+]
