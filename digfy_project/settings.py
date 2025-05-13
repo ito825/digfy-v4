@@ -34,7 +34,14 @@ INSTALLED_APPS = [
     'visualizer',                       # アプリ（アーティスト可視化）
     'corsheaders',                      # CORS（他ドメインからのアクセス許可）設定用
     'rest_framework',                   # Django REST Framework（API構築用）
+    'rest_framework_simplejwt',
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',

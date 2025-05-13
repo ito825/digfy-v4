@@ -4,12 +4,20 @@ from django.urls import path
 from . import views
 from django.contrib.auth import views as auth_views
 from .api_views import RelatedArtistsAPIView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+from .api_views import SignupAPIView
+from .api_views import MyNetworksAPIView
 
+from .views_jwt import MyTokenObtainPairView
 urlpatterns = [
     path('', views.index, name='index'),                       # トップページ（検索＆描画）
-    path('signup/', views.signup, name='signup'),              # サインアップ
-    path('my-networks/', views.my_networks, name='my_networks'),# 保存済みネットワーク一覧
+    path("api/signup/", SignupAPIView.as_view(), name="api_signup"), # サインアップページ
+    path('api/my-networks/', MyNetworksAPIView.as_view(), name='my_networks_api'),# 保存済みネットワーク一覧
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),#ログアウト
     path('api/related-artists/', RelatedArtistsAPIView.as_view(), name='related_artists_api'),# APIルーティング
-
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
 ]
