@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { refreshAccessToken } from "../utils/auth";
 
 function ArtistVisualizer() {
   const [artist, setArtist] = useState("");
@@ -60,6 +61,55 @@ function ArtistVisualizer() {
           </a>
         </div>
       )}
+      <button
+        onClick={async () => {
+          let access = localStorage.getItem("access");
+          let response = await fetch(
+            "http://localhost:8000/api/save-network/",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${access}`,
+              },
+              body: JSON.stringify({
+                artist_name: artist,
+                html_content: htmlContent,
+              }),
+            }
+          );
+
+          if (response.status === 401) {
+            // アクセストークンが期限切れ → 再取得して再実行
+            access = await refreshAccessToken();
+            if (access) {
+              response = await fetch(
+                "http://localhost:8000/api/save-network/",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${access}`,
+                  },
+                  body: JSON.stringify({
+                    artist_name: artist,
+                    html_content: htmlContent,
+                  }),
+                }
+              );
+            }
+          }
+
+          if (response.ok) {
+            alert("保存しました！");
+          } else {
+            alert("保存に失敗しました");
+          }
+        }}
+        style={{ marginTop: "20px" }}
+      >
+        保存する
+      </button>
     </div>
   );
 }

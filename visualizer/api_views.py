@@ -41,5 +41,30 @@ class MyNetworksAPIView(APIView):
 
     def get(self, request):
         items = ArtistNetwork.objects.filter(user=request.user).order_by('-created_at')
-        serializer = ArtistNetworkSerializer(items, many=True)
-        return Response(serializer.data)
+        data = [
+            {
+                "artist_name": item.artist_name,
+                "html_content": item.html_content,
+                "created_at": item.created_at
+            }
+            for item in items
+        ]
+        return Response(data)
+
+class SaveNetworkAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        artist_name = request.data.get("artist_name")
+        html_content = request.data.get("html_content")
+
+        if not artist_name or not html_content:
+            return Response({"error": "Missing data"}, status=400)
+
+        ArtistNetwork.objects.create(
+            user=request.user,
+            artist_name=artist_name,
+            html_content=html_content
+        )
+        return Response({"message": "Saved"}, status=201)
+   

@@ -10,8 +10,9 @@ from rest_framework_simplejwt.views import (
 )
 from .api_views import SignupAPIView
 from .api_views import MyNetworksAPIView
-
 from .views_jwt import MyTokenObtainPairView
+from .api_views import SaveNetworkAPIView
+
 urlpatterns = [
     path('', views.index, name='index'),                       # トップページ（検索＆描画）
     path("api/signup/", SignupAPIView.as_view(), name="api_signup"), # サインアップページ
@@ -20,4 +21,5 @@ urlpatterns = [
     path('api/related-artists/', RelatedArtistsAPIView.as_view(), name='related_artists_api'),# APIルーティング
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path("api/save-network/", SaveNetworkAPIView.as_view(), name="save_network"),
 ]

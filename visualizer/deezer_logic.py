@@ -73,7 +73,13 @@ class DeezerInfo:
                 self.add_edges(name2, tmp_df)
 
         plt.figure(figsize=[30, 30])
-        pos = nx.spring_layout(self.G, seed=42, k=0.5)
+        pos = nx.spring_layout(
+        self.G,
+        seed=42,
+        k=0.5,
+        center=(0, 0),
+        pos={name: [0.0, 0.0]}  # ← 検索アーティストを中央に配置
+    )
         nx.draw_networkx_nodes(
             self.G, pos,
             node_size=[nx.degree_centrality(self.G)[i]*20000 for i in self.G.nodes],
