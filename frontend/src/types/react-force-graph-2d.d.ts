@@ -22,6 +22,8 @@ declare module "react-force-graph-2d" {
     onNodeClick?: (node: any) => void;
     linkDirectionalParticles?: number;
     linkDirectionalParticleSpeed?: number;
+    backgroundColor?: string;
+    linkColor?: () => string;
   };
 
   const ForceGraph2D: ComponentType<ForceGraphProps & { ref?: Ref<any> }>;
