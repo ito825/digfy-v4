@@ -47,3 +47,34 @@ def signup(request):
 def my_networks(request):
     items = ArtistNetwork.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'visualizer/my_networks.html', {'networks': items})
+
+import requests
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+
+@csrf_exempt
+def deezer_proxy(request):
+    artist_name = request.GET.get("q")
+    if not artist_name:
+        return JsonResponse({"error": "Missing 'q' parameter"}, status=400)
+
+    try:
+        deezer_url = f"https://api.deezer.com/search/artist?q={artist_name}"
+        res = requests.get(deezer_url)
+        return JsonResponse(res.json(), safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)
+
+@csrf_exempt
+def deezer_artist_top(request):
+    artist_id = request.GET.get("id")
+    if not artist_id:
+        return JsonResponse({"error": "Missing 'id' parameter"}, status=400)
+
+    try:
+        deezer_url = f"https://api.deezer.com/artist/{artist_id}/top?limit=1"
+        res = requests.get(deezer_url)
+        return JsonResponse(res.json(), safe=False)
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

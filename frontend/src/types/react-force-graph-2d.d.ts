@@ -19,11 +19,12 @@ declare module "react-force-graph-2d" {
     linkDistance?: number;
     cooldownTicks?: number;
     onEngineStop?: () => void;
-    onNodeClick?: (node: any) => void;
+    onNodeClick?: (node: any, event?: MouseEvent) => void;
     linkDirectionalParticles?: number;
     linkDirectionalParticleSpeed?: number;
     backgroundColor?: string;
     linkColor?: () => string;
+    onNodeHover?: (node: any | null, event?: MouseEvent) => void;
   };
 
   const ForceGraph2D: ComponentType<ForceGraphProps & { ref?: Ref<any> }>;

@@ -24,4 +24,6 @@ urlpatterns = [
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("api/save-network/", SaveNetworkAPIView.as_view(), name="save_network"),
     path("api/graph-json/", RelatedGraphJSONAPIView.as_view(), name="graph_json"),
+    path('api/deezer/', views.deezer_proxy),
+    path('api/deezer/top/', views.deezer_artist_top),
 ]
