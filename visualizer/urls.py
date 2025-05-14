@@ -12,6 +12,7 @@ from .api_views import SignupAPIView
 from .api_views import MyNetworksAPIView
 from .views_jwt import MyTokenObtainPairView
 from .api_views import SaveNetworkAPIView
+from .api_views import RelatedGraphJSONAPIView
 
 urlpatterns = [
     path('', views.index, name='index'),                       # トップページ（検索＆描画）
@@ -22,4 +23,5 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/token/', MyTokenObtainPairView.as_view(), name='token_obtain_pair'),
     path("api/save-network/", SaveNetworkAPIView.as_view(), name="save_network"),
+    path("api/graph-json/", RelatedGraphJSONAPIView.as_view(), name="graph_json"),
 ]

@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from "react";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import ArtistVisualizer from "./pages/ArtistVisualizer";
@@ -9,13 +8,24 @@ import SavedList from "./pages/MyNetworks";
 function App() {
   return (
     <Router>
-      <div style={{ padding: "20px" }}>
-        <nav style={{ marginBottom: "20px" }}>
-          <Link to="/">可視化</Link> | <Link to="/login">ログイン</Link> |{" "}
-          <Link to="/signup">サインアップ</Link> |{" "}
-          <Link to="/MyNetworks">保存一覧</Link>
+      <div className="min-h-screen bg-gray-900 text-white p-4">
+        {/* ナビゲーションバー */}
+        <nav className="mb-6 flex gap-4 text-lg font-medium">
+          <Link to="/" className="hover:text-blue-400">
+            可視化
+          </Link>
+          <Link to="/login" className="hover:text-blue-400">
+            ログイン
+          </Link>
+          <Link to="/signup" className="hover:text-blue-400">
+            サインアップ
+          </Link>
+          <Link to="/MyNetworks" className="hover:text-blue-400">
+            保存一覧
+          </Link>
         </nav>
 
+        {/* ページルーティング */}
         <Routes>
           <Route path="/" element={<ArtistVisualizer />} />
           <Route path="/login" element={<Login />} />

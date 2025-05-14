@@ -99,3 +99,24 @@ class DeezerInfo:
         graph = base64.b64encode(image_png).decode('utf-8')
         html_display = f'<img src="data:image/png;base64,{graph}" alt="Artist Network">'
         return html_display, graph
+    
+    def get_graph_json(self, name, level=2):
+        artist_id = self.get_artist_id(name)
+        if not artist_id:
+            return None
+
+        df = self.get_related_artist_info(artist_id)[:5]
+        self.add_nodes(df, root=True, root_name=name)
+        self.add_edges(name, df)
+
+        if level >= 2:
+            for name2 in df.index.tolist():
+                tmp_df = self.get_related_artist_info(df.loc[name2, 'id'])[:5]
+                self.add_nodes(tmp_df)
+                self.add_edges(name2, tmp_df)
+
+        nodes = [{"id": node, "group": 1} for node in self.G.nodes]
+        links = [{"source": s, "target": t} for s, t in self.G.edges]
+
+        return {"nodes": nodes, "links": links}
+    

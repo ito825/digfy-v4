@@ -6,6 +6,7 @@ from rest_framework.permissions import IsAuthenticated
 from .deezer_logic import DeezerInfo
 from .models import ArtistNetwork
 from .serializers import ArtistNetworkSerializer
+from django.http import JsonResponse
 
 class RelatedArtistsAPIView(APIView):
     def post(self, request):
@@ -13,14 +14,14 @@ class RelatedArtistsAPIView(APIView):
         level = int(request.data.get('level', 2))
 
         if not artist_name:
-            return Response({'error': 'Artist name is required.'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'error': 'Artist name is required.'}, status=400)
 
         deezer = DeezerInfo()
-        html, img = deezer.draw_related_map(artist_name, level=level)
-        if not html:
-            return Response({'error': 'Artist not found.'}, status=status.HTTP_404_NOT_FOUND)
+        graph_data = deezer.get_graph_data(artist_name, level=level)
+        if not graph_data:
+            return Response({'error': 'Artist not found.'}, status=404)
 
-        return Response({'html': html, 'img': img})
+        return Response(graph_data)
 
 class SignupAPIView(APIView):
     def post(self, request):
@@ -67,4 +68,19 @@ class SaveNetworkAPIView(APIView):
             html_content=html_content
         )
         return Response({"message": "Saved"}, status=201)
-   
+    
+class RelatedGraphJSONAPIView(APIView):
+    def post(self, request):
+        artist_name = request.data.get("artist")
+        level = int(request.data.get("level", 2))
+
+        if not artist_name:
+            return Response({"error": "Artist name is required"}, status=status.HTTP_400_BAD_REQUEST)
+
+        deezer = DeezerInfo()
+        graph_data = deezer.get_graph_json(artist_name, level=level)
+
+        if not graph_data:
+            return Response({"error": "Artist not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response(graph_data)  

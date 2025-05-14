@@ -1,38 +1,49 @@
-import React, { useState } from "react";
-import { refreshAccessToken } from "../utils/auth";
+import React, { useState, useRef, useEffect } from "react";
+import ForceGraph2D from "react-force-graph-2d";
+import { forceCollide } from "d3-force";
 
 function ArtistVisualizer() {
   const [artist, setArtist] = useState("");
-  const [htmlContent, setHtmlContent] = useState("");
-  const [image, setImage] = useState("");
-  const username = localStorage.getItem("username"); // ログイン済みのユーザー名を取得
+  const [graphData, setGraphData] = useState({ nodes: [], links: [] });
+  const fgRef = useRef<any>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    if (fgRef.current) {
+      fgRef.current.d3Force("charge")?.strength(-150);
+      fgRef.current.d3Force("link")?.distance(120);
+      fgRef.current.d3Force("collide", forceCollide(30)); // 半径30の衝突防止
+    }
+  }, [graphData]); // グラフ更新時に反映
 
-    const response = await fetch("http://localhost:8000/api/related-artists/", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ artist, level: 2 }),
-    });
+  const handleSubmit = async (
+    e?: React.FormEvent,
+    centerOverride?: string
+  ): Promise<void> => {
+    if (e) e.preventDefault();
+    const targetArtist = centerOverride || artist;
 
-    const data = await response.json();
-    if (response.ok) {
-      setHtmlContent(data.html); // HTML形式のグラフを表示
-      setImage(data.img); // PNG画像のBase64を保存（ダウンロード用）
-    } else {
-      alert(data.error || "エラーが発生しました");
+    try {
+      const response = await fetch("http://localhost:8000/api/graph-json/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ artist: targetArtist, level: 2 }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        setArtist(targetArtist);
+        setGraphData(data);
+      } else {
+        alert(data.error || "エラーが発生しました");
+      }
+    } catch (err) {
+      alert("通信に失敗しました");
     }
   };
 
   return (
-    <div>
+    <>
       <h1>関連アーティストを可視化</h1>
-
-      {username && <p>こんにちは、{username}さん！</p>}
-
       <form onSubmit={handleSubmit}>
         <input
           type="text"
@@ -43,74 +54,42 @@ function ArtistVisualizer() {
         <button type="submit">検索</button>
       </form>
 
-      {htmlContent && (
-        <div
-          dangerouslySetInnerHTML={{ __html: htmlContent }}
-          style={{ marginTop: "30px" }}
-        />
-      )}
+      <ForceGraph2D
+        ref={fgRef as any}
+        width={1000}
+        height={600}
+        graphData={graphData}
+        nodeLabel={(node: any) => node.id}
+        nodeAutoColorBy="id"
+        nodeCanvasObject={(
+          node: any,
+          ctx: CanvasRenderingContext2D,
+          globalScale: number
+        ) => {
+          const label = node.id;
+          const fontSize = 10 / globalScale;
+          const radius = 15;
 
-      {image && (
-        <div style={{ marginTop: "30px" }}>
-          <a
-            href={`data:image/png;base64,${image}`}
-            download={`${artist}_network.png`}
-            style={{ display: "block", marginTop: "10px" }}
-          >
-            📷 この画像をダウンロード
-          </a>
-        </div>
-      )}
-      <button
-        onClick={async () => {
-          let access = localStorage.getItem("access");
-          let response = await fetch(
-            "http://localhost:8000/api/save-network/",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${access}`,
-              },
-              body: JSON.stringify({
-                artist_name: artist,
-                html_content: htmlContent,
-              }),
-            }
-          );
+          ctx.beginPath();
+          ctx.arc(node.x, node.y, radius, 0, 2 * Math.PI, false);
+          ctx.fillStyle = node.color || "gray";
+          ctx.fill();
 
-          if (response.status === 401) {
-            // アクセストークンが期限切れ → 再取得して再実行
-            access = await refreshAccessToken();
-            if (access) {
-              response = await fetch(
-                "http://localhost:8000/api/save-network/",
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${access}`,
-                  },
-                  body: JSON.stringify({
-                    artist_name: artist,
-                    html_content: htmlContent,
-                  }),
-                }
-              );
-            }
-          }
-
-          if (response.ok) {
-            alert("保存しました！");
-          } else {
-            alert("保存に失敗しました");
-          }
+          ctx.font = `${fontSize}px Sans-Serif`;
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.lineWidth = 4;
+          ctx.strokeStyle = "white";
+          ctx.strokeText(label, node.x, node.y);
+          ctx.fillStyle = "black";
+          ctx.fillText(label, node.x, node.y);
         }}
-        style={{ marginTop: "20px" }}
-      >
-        保存する
-      </button>
-    </div>
+        onNodeClick={(node: any) => {
+          setArtist(node.id);
+          handleSubmit(undefined, node.id);
+        }}
+      />
+    </>
   );
 }
 
