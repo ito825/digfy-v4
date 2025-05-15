@@ -5,11 +5,15 @@ function ArtistVisualizer() {
   const [artist, setArtist] = useState("oasis");
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-  const [hoveredNodeInfo, setHoveredNodeInfo] = useState<{
-    node: any;
+  const [buttonPosition, setButtonPosition] = useState<{
     x: number;
     y: number;
+    artist: string;
   } | null>(null);
+  const [currentTrackTitle, setCurrentTrackTitle] = useState<string | null>(
+    null
+  );
+
   const fgRef = useRef<any>(null);
 
   const handleSubmit = async (
@@ -68,6 +72,8 @@ function ArtistVisualizer() {
 
       const previewUrl = data2.data[0].preview;
       setPreviewUrl(previewUrl);
+      const trackTitle = data2.data[0].title_short;
+      setCurrentTrackTitle(trackTitle);
     } catch (error) {
       console.error("Deezer fetch error", error);
     }
@@ -79,15 +85,13 @@ function ArtistVisualizer() {
     }
   }, [graphData]);
 
-  const playButtonRadius = 10;
-
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4">
+    <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center p-4 relative">
       <h1 className="text-3xl font-bold mb-6">関連アーティストを可視化</h1>
 
       <form
         onSubmit={handleSubmit}
-        className="flex space-x-2 mb-6 items-center"
+        className="flex space-x-4 mb-6 items-center"
       >
         <input
           type="text"
@@ -102,6 +106,22 @@ function ArtistVisualizer() {
         >
           検索
         </button>
+
+        {previewUrl && currentTrackTitle && (
+          <div className="ml-4 bg-gray-800 p-2 rounded shadow w-64">
+            <div className="text-sm text-gray-300 mb-1">Now Playing</div>
+            <div className="text-blue-400 font-semibold text-sm truncate">
+              {currentTrackTitle}
+            </div>
+            <div className="flex items-end justify-between h-6 mt-1">
+              <div className="w-1 bg-blue-400 animate-bounce h-1/2 delay-0" />
+              <div className="w-1 bg-blue-400 animate-bounce h-2/3 delay-100" />
+              <div className="w-1 bg-blue-400 animate-bounce h-1/3 delay-200" />
+              <div className="w-1 bg-blue-400 animate-bounce h-2/4 delay-300" />
+              <div className="w-1 bg-blue-400 animate-bounce h-1/2 delay-400" />
+            </div>
+          </div>
+        )}
       </form>
 
       <div className="w-full max-w-6xl h-[600px] border border-gray-700 rounded overflow-hidden mb-4">
@@ -114,14 +134,15 @@ function ArtistVisualizer() {
           nodeLabel={(node: any) => node.id}
           nodeAutoColorBy="id"
           onNodeHover={(node, event) => {
-            if (node && event && fgRef.current) {
-              const coords = fgRef.current.screen2GraphCoords(
-                event.clientX,
-                event.clientY
-              );
-              setHoveredNodeInfo({ node, x: coords.x, y: coords.y });
+            console.log("onNodeHover triggered", node); // ← 追加！
+            if (node && event) {
+              setButtonPosition({
+                x: event.offsetX,
+                y: event.offsetY,
+                artist: node.id,
+              });
             } else {
-              setHoveredNodeInfo(null);
+              setButtonPosition(null);
             }
           }}
           nodeCanvasObject={(
@@ -146,44 +167,34 @@ function ArtistVisualizer() {
             ctx.strokeText(label, node.x, node.y);
             ctx.fillStyle = "white";
             ctx.fillText(label, node.x, node.y);
-
-            if (hoveredNodeInfo && hoveredNodeInfo.node.id === node.id) {
-              const px = node.x + 20;
-              const py = node.y - 20;
-
-              ctx.beginPath();
-              ctx.arc(px, py, playButtonRadius, 0, 2 * Math.PI);
-              ctx.fillStyle = "lightgreen";
-              ctx.fill();
-
-              ctx.beginPath();
-              ctx.fillStyle = "black";
-              ctx.moveTo(px - 3, py - 5);
-              ctx.lineTo(px - 3, py + 5);
-              ctx.lineTo(px + 5, py);
-              ctx.closePath();
-              ctx.fill();
-            }
           }}
           onNodeClick={(node, event?: MouseEvent) => {
             if (!node || !event) return;
-
-            if (hoveredNodeInfo && hoveredNodeInfo.node.id === node.id) {
-              const dx = hoveredNodeInfo.x - (node.x + 20);
-              const dy = hoveredNodeInfo.y - (node.y - 20);
-              const dist = Math.sqrt(dx * dx + dy * dy);
-
-              if (dist <= playButtonRadius) {
-                fetchDeezerPreview(node.id);
-                return;
-              }
-            }
-
             setArtist(node.id);
             handleSubmit(undefined, node.id);
           }}
         />
       </div>
+
+      {buttonPosition && (
+        <div
+          className="absolute"
+          style={{
+            position: "absolute",
+            top: `${buttonPosition.y}px`,
+            left: `${buttonPosition.x}px`,
+            transform: "translate(10px, -10px)",
+            zIndex: 1000, // ← 最前面へ
+          }}
+        >
+          <button
+            onClick={() => fetchDeezerPreview(buttonPosition.artist)}
+            className="bg-green-500 hover:bg-green-600 text-black px-2 py-1 rounded shadow"
+          >
+            ▶ 再生
+          </button>
+        </div>
+      )}
 
       {previewUrl && (
         <div className="my-4">
