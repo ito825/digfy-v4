@@ -14,6 +14,8 @@ function ArtistVisualizer() {
     null
   );
 
+  const [albumCoverUrl, setAlbumCoverUrl] = useState<string | null>(null);
+
   const fgRef = useRef<any>(null);
 
   const handleSubmit = async (
@@ -36,7 +38,7 @@ function ArtistVisualizer() {
       if (response.ok) {
         setArtist(targetArtist);
         setGraphData(data);
-        fetchDeezerPreview(targetArtist); // ついでに再生
+        fetchDeezerPreview(targetArtist);
       } else {
         alert(data.error || "エラーが発生しました");
       }
@@ -74,6 +76,8 @@ function ArtistVisualizer() {
       setPreviewUrl(previewUrl);
       const trackTitle = data2.data[0].title_short;
       setCurrentTrackTitle(trackTitle);
+      const track = data2.data[0];
+      setAlbumCoverUrl(track.album.cover);
     } catch (error) {
       console.error("Deezer fetch error", error);
     }
@@ -108,17 +112,39 @@ function ArtistVisualizer() {
         </button>
 
         {previewUrl && currentTrackTitle && (
-          <div className="ml-4 bg-gray-800 p-2 rounded shadow w-64">
-            <div className="text-sm text-gray-300 mb-1">Now Playing</div>
-            <div className="text-blue-400 font-semibold text-sm truncate">
-              {currentTrackTitle}
-            </div>
-            <div className="flex items-end justify-between h-6 mt-1">
-              <div className="w-1 bg-blue-400 animate-bounce h-1/2 delay-0" />
-              <div className="w-1 bg-blue-400 animate-bounce h-2/3 delay-100" />
-              <div className="w-1 bg-blue-400 animate-bounce h-1/3 delay-200" />
-              <div className="w-1 bg-blue-400 animate-bounce h-2/4 delay-300" />
-              <div className="w-1 bg-blue-400 animate-bounce h-1/2 delay-400" />
+          <div className="ml-4 bg-gray-800 p-3 rounded-xl shadow">
+            <div className="flex items-center space-x-4">
+              {/* ジャケット画像 */}
+              {albumCoverUrl && (
+                <img
+                  src={albumCoverUrl}
+                  alt="Album cover"
+                  className="rounded-lg flex-shrink-0"
+                  style={{ width: 60, height: 60, objectFit: "cover" }}
+                />
+              )}
+
+              {/* 曲情報ブロック */}
+              <div className="flex flex-col justify-center overflow-hidden">
+                {/* Now Playing ラベル */}
+                <div className="text-xs text-gray-400 uppercase tracking-wide mb-1">
+                  Now Playing
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  {/* 再生インジケーター */}
+                  <div className="flex items-end space-x-[2px] h-4 w-5">
+                    <div className="w-[2px] h-2 bg-green-400 animate-bounce delay-0" />
+                    <div className="w-[2px] h-3 bg-green-400 animate-bounce delay-100" />
+                    <div className="w-[2px] h-1 bg-green-400 animate-bounce delay-200" />
+                  </div>
+
+                  {/* 曲タイトル */}
+                  <div className="text-white font-semibold text-base truncate max-w-[200px]">
+                    {currentTrackTitle}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
